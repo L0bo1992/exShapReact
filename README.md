@@ -1,4 +1,4 @@
-# exShapReact - Business with China Platform
+# ShapShap Exchange - Business with China Platform
 
 A React Native Web application designed to help business people, solopreneurs, and SME/SMI managers conduct business with China remotely.
 
