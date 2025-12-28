@@ -234,7 +234,7 @@ export default function ExchangeScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 140, // Increased to account for floating tab bar
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',

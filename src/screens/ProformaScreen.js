@@ -138,7 +138,7 @@ export default function ProformaScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   scrollContent: {
       padding: 20,
-      paddingBottom: 40
+      paddingBottom: 140
   },
   contentRow: {
       flex: 1,

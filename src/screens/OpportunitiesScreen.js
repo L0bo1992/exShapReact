@@ -64,7 +64,7 @@ export default function OpportunitiesScreen({ navigation }) {
                     data={opportunities}
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
-                    contentContainerStyle={{paddingBottom: 20}}
+                    contentContainerStyle={{paddingBottom: 140}}
                 />
             )}
         </View>
