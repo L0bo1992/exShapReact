@@ -29,7 +29,8 @@ export default function ProformaScreen({ route, navigation }) {
   };
 
   const navigateToService = (serviceName) => {
-      navigation.navigate('IAmIn', { selectedService: serviceName });
+      // navigation.navigate('IAmIn', { selectedService: serviceName });
+      alert(`Service '${serviceName}' is coming soon!`);
   }
 
   return (

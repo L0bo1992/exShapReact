@@ -1,45 +1,25 @@
 import React from 'react';
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, Pressable } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function GlassCard({ children, style, onPress }) {
   const theme = useTheme();
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
-
-  const handlePressIn = () => {
-    if (onPress) scale.value = withSpring(0.98);
-  };
-
-  const handlePressOut = () => {
-    if (onPress) scale.value = withSpring(1);
-  };
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
+      style={({ pressed }) => [
         styles.card,
         {
           backgroundColor: 'rgba(30, 41, 59, 0.7)', // Semi-transparent slate
           borderColor: theme.colors.cardBorder,
+          transform: [{ scale: pressed && onPress ? 0.98 : 1 }]
         },
-        style,
-        animatedStyle
+        style
       ]}
     >
       {children}
-    </AnimatedPressable>
+    </Pressable>
   );
 }
 

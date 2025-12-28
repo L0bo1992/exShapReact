@@ -35,7 +35,7 @@ export default function OpportunitiesScreen({ navigation }) {
                      <Text style={{color: theme.colors.placeholder, fontStyle: 'italic'}}>Exclusive to members</Text>
                      <Button 
                         mode="contained" 
-                        onPress={() => navigation.navigate('IAmIn')}
+                        onPress={() => alert("This opportunity is coming soon!")}
                         buttonColor={theme.colors.secondary}
                         textColor={theme.colors.onPrimary}
                      >
