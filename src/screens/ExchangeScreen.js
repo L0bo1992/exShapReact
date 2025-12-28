@@ -74,15 +74,15 @@ export default function ExchangeScreen() {
     
     // User Example Model:
     // Input: 1,000,000
-    // Bank Total: 1,011,700 (1.17% Fee)
+    // Bank Total: 1,011,700 (1.26% Fee)
     // ShapShap Cost: 1,006,000 (0.6% Fee)
     // Savings: 5,700
-    
-    // Bank Total Cost = Amount * 1.0117
-    const bankTotal = amount * 1.0117;
+
+    // Bank Total Cost = Amount * 1.0126
+    const bankTotal = amount * 1.0126;
     
     // Black Market: 5% more expensive than Bank
-    const blackMarketTotal = bankTotal * 1.05;
+    const blackMarketTotal = bankTotal * 1.005;
     
     // ShapShap Fees: 0.6%
     const shapShapFeesTotal = (amount * (ourFeePercent + networkFeePercent)) / 100;
