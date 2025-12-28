@@ -12,6 +12,7 @@ import { theme } from './src/theme/theme';
 import ExchangeScreen from './src/screens/ExchangeScreen';
 import ProformaScreen from './src/screens/ProformaScreen';
 import OpportunitiesScreen from './src/screens/OpportunitiesScreen';
+import AccountScreen from './src/screens/AccountScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -77,6 +78,8 @@ export default function App() {
                     iconName = 'file-document-outline';
                   } else if (route.name === 'Opportunities') {
                     iconName = 'lightbulb-on-outline';
+                  } else if (route.name === 'Account') {
+                    iconName = 'account-circle-outline';
                   }
 
                   return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
@@ -86,6 +89,7 @@ export default function App() {
               <Tab.Screen name="Exchange" component={ExchangeScreen} />
               <Tab.Screen name="Proforma" component={ProformaScreen} />
               <Tab.Screen name="Opportunities" component={OpportunitiesScreen} />
+              <Tab.Screen name="Account" component={AccountScreen} />
             </Tab.Navigator>
           </NavigationContainer>
         </PaperProvider>

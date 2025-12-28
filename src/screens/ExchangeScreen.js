@@ -34,7 +34,7 @@ const BASE_RATES = {
   'CDF': 0.00036
 };
 
-export default function ExchangeScreen() {
+export default function ExchangeScreen({ navigation }) {
   const theme = useTheme();
   
   // Currency Selection State
@@ -72,16 +72,16 @@ export default function ExchangeScreen() {
   const calculateSavings = () => {
     const amount = parseFloat(localAmount) || 0;
     
-    // User Example Model:
+    // User Example Model (Updated to 1.26% Bank Fees):
     // Input: 1,000,000
-    // Bank Total: 1,011,700 (1.26% Fee)
+    // Bank Total: 1,012,600 (1.26% Fee)
     // ShapShap Cost: 1,006,000 (0.6% Fee)
-    // Savings: 5,700
-
+    // Savings: 6,600
+    
     // Bank Total Cost = Amount * 1.0126
     const bankTotal = amount * 1.0126;
     
-    // Black Market: 5% more expensive than Bank
+    // Black Market: 0.5% more expensive than Bank
     const blackMarketTotal = bankTotal * 1.005;
     
     // ShapShap Fees: 0.6%
@@ -103,6 +103,18 @@ export default function ExchangeScreen() {
   const fee = (parseFloat(localAmount) || 0) * (ourFeePercent / 100);
   const netFee = (parseFloat(localAmount) || 0) * (networkFeePercent / 100);
   const totalPay = (parseFloat(localAmount) || 0) + fee + netFee;
+
+  const handleProceed = () => {
+    if (!localAmount || parseFloat(localAmount) <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+    navigation.navigate('Account', { 
+      amount: localAmount, 
+      currency: currency,
+      rmbAmount: calculations.shapShap 
+    });
+  };
 
   const formatRate = (rate) => {
       if (rate < 0.01) return rate.toFixed(6);
@@ -135,7 +147,7 @@ export default function ExchangeScreen() {
                {SUPPORTED_CURRENCIES.map((curr) => (
                  <Menu.Item 
                     key={curr.code} 
-                    onPress={() => { setCurrency(curr.code); setMenuVisible(false); }}
+                    onPress={() => { setCurrency(curr.code); setMenuVisible(false); }} 
                     title={`${curr.code} - ${curr.name}`}
                     titleStyle={{ color: theme.colors.onSurface }}
                  />
@@ -217,7 +229,7 @@ export default function ExchangeScreen() {
             
             <Button 
                 mode="contained" 
-                onPress={() => alert("Proceed to get RENMINBI")}
+                onPress={handleProceed}
                 icon="currency-cny"
                 contentStyle={styles.actionBtnContent}
                 labelStyle={styles.actionBtnLabel}
@@ -234,7 +246,7 @@ export default function ExchangeScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 140, // Increased to account for floating tab bar
+    paddingBottom: 140,
     maxWidth: 600,
     alignSelf: 'center',
     width: '100%',
@@ -325,18 +337,11 @@ const styles = StyleSheet.create({
   actionCard: {
     padding: 20,
   },
-  actionButtons: { // This style is no longer used but kept for now.
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionBtn: { // This style is no longer used but kept for now.
-    flex: 1,
-  },
   actionBtnContent: {
-    height: 50, // Adjusted height for single button
+    height: 50,
   },
   actionBtnLabel: {
-    fontSize: 16, // Adjusted font size for single button
+    fontSize: 16,
     textAlign: 'center',
   },
 });
