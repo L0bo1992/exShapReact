@@ -34,14 +34,14 @@ export default function OpportunitiesScreen({ navigation }) {
                     <Text style={[styles.itemDesc, {color: theme.colors.onSurface}]}>{item.description}</Text>
                  </View>
                  <View style={styles.actionRow}>
-                     <Text style={{color: theme.colors.placeholder, fontStyle: 'italic'}}>Exclusive to members</Text>
+                     <Text style={{color: theme.colors.placeholder, fontStyle: 'italic'}}>{t('exclusiveMembers')}</Text>
                      <Button 
                         mode="contained" 
-                        onPress={() => alert("This opportunity is coming soon!")}
+                        onPress={() => alert(t('comingSoon'))}
                         buttonColor={theme.colors.secondary}
                         textColor={theme.colors.onPrimary}
                      >
-                         Unlock Opportunity
+                         {t('unlockOpportunity')}
                      </Button>
                  </View>
              </View>
@@ -53,9 +53,9 @@ export default function OpportunitiesScreen({ navigation }) {
     <ScreenWrapper>
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={[styles.pageTitle, {color: theme.colors.primary}]}>{t('opportunities')}</Text>
+                <Text style={[styles.pageTitle, {color: theme.colors.primary}]}>{t('marketOpportunities')}</Text>
                 <Text style={[styles.pageSubtitle, {color: theme.colors.placeholder}]}>
-                    Curated high-value insights and supply chain gaps ready for disruption.
+                    {t('curatedInsights')}
                 </Text>
             </View>
 

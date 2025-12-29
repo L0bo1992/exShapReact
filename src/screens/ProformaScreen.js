@@ -31,7 +31,7 @@ export default function ProformaScreen({ route, navigation }) {
   };
 
   const navigateToService = (serviceName) => {
-      alert(`Service '${serviceName}' is coming soon!`);
+      alert(`${t('comingSoon')}: ${serviceName}`);
   }
 
   return (
@@ -44,23 +44,23 @@ export default function ProformaScreen({ route, navigation }) {
                 <GlassCard style={styles.card}>
                     <View style={styles.cardHeader}>
                          <MaterialCommunityIcons name="cube-scan" size={24} color={theme.colors.primary} />
-                         <Text style={[styles.cardTitle, {color: theme.colors.onSurface}]}> 1. Product Cost Calculation</Text>
+                         <Text style={[styles.cardTitle, {color: theme.colors.onSurface}]}> 1. {t('productCostCalc')}</Text>
                     </View>
                     
                     {supplier ? (
                         <View style={[styles.supplierInfo, { backgroundColor: 'rgba(0, 229, 255, 0.1)', borderLeftColor: theme.colors.primary }]}>
                             <Text style={{color: theme.colors.primary, fontWeight: 'bold', fontSize: 16}}>{supplier.name}</Text>
                             <Text style={{color: theme.colors.onSurface}}>{supplier.product}</Text>
-                            <Text style={{color: theme.colors.placeholder}}>Unit Price: {supplier.currency} {supplier.price}</Text>
+                            <Text style={{color: theme.colors.placeholder}}>{t('unitPrice')}: {supplier.currency} {supplier.price}</Text>
                         </View>
                     ) : (
                          <Text style={{fontStyle: 'italic', marginBottom: 15, color: theme.colors.error}}>
-                             Please select a supplier from the Opportunities or Suppliers section.
+                             {t('selectSupplierPrompt')}
                          </Text>
                     )}
                     
                     <TextInput
-                        label="Quantity"
+                        label={t('quantity')}
                         value={quantity}
                         onChangeText={setQuantity}
                         keyboardType="numeric"
@@ -77,14 +77,14 @@ export default function ProformaScreen({ route, navigation }) {
                         buttonColor={theme.colors.primary}
                         textColor={theme.colors.onPrimary}
                     >
-                        Calculate Cost
+                        {t('calculateCost')}
                     </Button>
 
                     {proformaData && (
                         <View style={[styles.resultBox, { backgroundColor: 'rgba(0, 230, 118, 0.1)' }]}>
-                            <Text variant="headlineSmall" style={{color: theme.colors.success, fontWeight: 'bold'}}>Total: ${proformaData.totalCost}</Text>
+                            <Text variant="headlineSmall" style={{color: theme.colors.success, fontWeight: 'bold'}}>{t('total')}: ${proformaData.totalCost}</Text>
                             <Button icon="download" mode="outlined" textColor={theme.colors.success} style={{marginTop: 10, borderColor: theme.colors.success}}>
-                                Download PDF
+                                {t('downloadPdf')}
                             </Button>
                         </View>
                     )}
@@ -92,11 +92,11 @@ export default function ProformaScreen({ route, navigation }) {
 
                 {/* Additional Costs Links */}
                 {[
-                    "Shipping & International Freight",
-                    "Insurance for the shipment",
-                    "Import Duties & Taxes",
-                    "Local Logistics",
-                    "Customs Brokerage Fees"
+                    t('serviceShipping'),
+                    t('serviceInsurance'),
+                    t('serviceDuties'),
+                    t('serviceLogistics'),
+                    t('serviceCustoms')
                 ].map((item, index) => (
                     <GlassCard key={index} style={[styles.card, {marginTop: 15, padding: 15}]} onPress={() => navigateToService(item)}>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -111,19 +111,19 @@ export default function ProformaScreen({ route, navigation }) {
             <View style={{flex: 1, marginTop: isDesktop ? 0 : 20}}>
                 <GlassCard style={{height: 600, padding: 0, overflow: 'hidden'}}>
                     <View style={{backgroundColor: theme.colors.surface, padding: 15, borderBottomWidth: 1, borderBottomColor: theme.colors.cardBorder}}>
-                        <Text style={{color: theme.colors.onSurface, fontWeight: 'bold'}}>Document Preview</Text>
+                        <Text style={{color: theme.colors.onSurface, fontWeight: 'bold'}}>{t('documentPreview')}</Text>
                     </View>
                     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)'}}>
                         {proformaData ? (
                             <View style={{alignItems: 'center'}}>
                                 <MaterialCommunityIcons name="file-pdf-box" size={120} color={theme.colors.error} />
-                                <Text style={{color: theme.colors.onSurface, marginTop: 10, fontSize: 18}}>Invoice Ready</Text>
-                                <Text style={{color: theme.colors.placeholder}}>Reference: #INV-2025-001</Text>
+                                <Text style={{color: theme.colors.onSurface, marginTop: 10, fontSize: 18}}>{t('invoiceReady')}</Text>
+                                <Text style={{color: theme.colors.placeholder}}>{t('reference')}: #INV-2025-001</Text>
                             </View>
                         ) : (
                             <View style={{alignItems: 'center'}}>
                                 <MaterialCommunityIcons name="file-hidden" size={80} color={theme.colors.placeholder} />
-                                <Text style={{color: theme.colors.placeholder, marginTop: 10}}>Generate cost to preview</Text>
+                                <Text style={{color: theme.colors.placeholder, marginTop: 10}}>{t('generateToPreview')}</Text>
                             </View>
                         )}
                     </View>
