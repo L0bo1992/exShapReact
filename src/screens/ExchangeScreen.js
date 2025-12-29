@@ -4,6 +4,7 @@ import { Text, useTheme, Button, TextInput, Divider, Menu, ProgressBar } from 'r
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLanguage } from '../context/LanguageContext';
 
 const SUPPORTED_CURRENCIES = [
   { code: 'NGN', name: 'Nigerian Naira' },
@@ -35,6 +36,7 @@ const BASE_RATES = {
 
 export default function ExchangeScreen({ navigation }) {
   const theme = useTheme();
+  const { t } = useLanguage();
   
   const [currency, setCurrency] = useState('NGN');
   const [menuVisible, setMenuVisible] = useState(false);
@@ -46,11 +48,12 @@ export default function ExchangeScreen({ navigation }) {
   const [isPremium, setIsPremium] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
 
-  const ourFeePercent = 0.5;
+  const ourFeePercent = isPremium ? 0.575 : 0.5;
   const networkFeePercent = 0.1;
 
   useEffect(() => {
     const base = BASE_RATES[currency];
+    if (isLocked) return;
     setExchangeRate(base);
 
     const interval = setInterval(() => {
@@ -63,7 +66,7 @@ export default function ExchangeScreen({ navigation }) {
       });
     }, 3000);
     return () => clearInterval(interval);
-  }, [currency]);
+  }, [currency, isLocked]);
 
   useEffect(() => {
     if (timeLeft > 0 && !isLocked) {
@@ -97,9 +100,13 @@ export default function ExchangeScreen({ navigation }) {
     };
   })();
 
+  const formatAmount = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
   const handleProceed = () => {
     if (!localAmount || parseFloat(localAmount) <= 0) {
-      alert("Please enter a valid amount.");
+      alert(t('enterValid'));
       return;
     }
     navigation.navigate('Account', { 
@@ -120,7 +127,8 @@ export default function ExchangeScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.container}>        
         <View style={styles.header}>
           <Text style={styles.headerSubtitle}>
-              ShapShap is designed to reduce the anxiety of cross-border trade. {'\n'}              <Text style={{fontWeight: 'bold', color: theme.colors.secondary}}>Fast and Reliable!</Text>
+              {t('anxietyReduce')} {'\n'}
+              <Text style={{fontWeight: 'bold', color: theme.colors.secondary}}>{t('fastReliable')}</Text>
           </Text>
           
           <View style={styles.tickerContainer}>
@@ -158,9 +166,9 @@ export default function ExchangeScreen({ navigation }) {
         </View>
 
         <GlassCard style={styles.calculatorCard}>
-            <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Live AI Rate Calculator</Text>
+            <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>{t('liveAiCalculator')}</Text>
             <TextInput
-                label={`Amount in ${currency}`}
+                label={`${t('amountIn')} ${currency}`}
                 value={localAmount}
                 onChangeText={setLocalAmount}
                 keyboardType="numeric"
@@ -172,50 +180,49 @@ export default function ExchangeScreen({ navigation }) {
             />
             <View style={styles.comparisonContainer}>
                 <View style={styles.comparisonRow}>
-                    <Text style={{color: theme.colors.placeholder}}>Bank Rate (Official)</Text>
-                    <Text style={{color: theme.colors.onSurface}}>{calcs.bankTotalLocal} {currency}</Text>
+                    <Text style={{color: theme.colors.placeholder}}>{t('bankRate')}</Text>
+                    <Text style={{color: theme.colors.onSurface}}>{formatAmount(calcs.bankTotalLocal)} {currency}</Text>
                 </View>
                 <View style={styles.comparisonRow}>
-                    <Text style={{color: theme.colors.placeholder}}>Black Market Rate</Text>
-                    <Text style={{color: theme.colors.onSurface}}>{calcs.blackMarketTotalLocal} {currency}</Text>
+                    <Text style={{color: theme.colors.placeholder}}>{t('blackMarketRate')}</Text>
+                    <Text style={{color: theme.colors.onSurface}}>{formatAmount(calcs.blackMarketTotalLocal)} {currency}</Text>
                 </View>
             </View>
         </GlassCard>
 
         <GlassCard style={styles.feeCard}>
-             <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>ShapShap Fees</Text>
+             <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>{t('shapShapFees')}</Text>
              <View style={styles.feeRow}>
-                 <Text style={{color: theme.colors.placeholder}}>Our Fee ({ourFeePercent}%)</Text>
-                 <Text style={{color: theme.colors.onSurface}}>{calcs.fee} {currency}</Text>
+                 <Text style={{color: theme.colors.placeholder}}>{t('ourFee')} ({ourFeePercent}%)</Text>
+                 <Text style={{color: theme.colors.onSurface}}>{formatAmount(calcs.fee)} {currency}</Text>
              </View>
              <View style={styles.feeRow}>
-                 <Text style={{color: theme.colors.placeholder}}>Network Fee ({networkFeePercent}%)</Text>
-                 <Text style={{color: theme.colors.onSurface}}>{calcs.netFee} {currency}</Text>
+                 <Text style={{color: theme.colors.placeholder}}>{t('networkFee')} ({networkFeePercent}%)</Text>
+                 <Text style={{color: theme.colors.onSurface}}>{formatAmount(calcs.netFee)} {currency}</Text>
              </View>
              <Divider style={{ marginVertical: 10, backgroundColor: theme.colors.cardBorder }} />
              <View style={styles.feeRowTotal}>
-                 <Text style={{color: theme.colors.onSurface, fontSize: 18}}>Total Pay</Text>
-                 <Text style={{color: theme.colors.primary, fontSize: 20, fontWeight: 'bold'}}>{calcs.totalPayLocal} {currency}</Text>
+                 <Text style={{color: theme.colors.onSurface, fontSize: 18}}>{t('totalPay')}</Text>
+                 <Text style={{color: theme.colors.primary, fontSize: 20, fontWeight: 'bold'}}>{formatAmount(calcs.totalPayLocal)} {currency}</Text>
              </View>
              <View style={[styles.savingsRow, {marginTop: 15, backgroundColor: 'rgba(0, 230, 118, 0.1)', padding: 10, borderRadius: 8}]}>
                  <MaterialCommunityIcons name="piggy-bank-outline" size={24} color={theme.colors.secondary} />
                  <Text style={{color: theme.colors.secondary, marginLeft: 10, fontWeight: 'bold'}}>
-                    You get: {calcs.shapShapCNY} CNY | You Save: {calcs.savingsLocal} {currency}
+                    {t('youGet')}: {formatAmount(calcs.shapShapCNY)} CNY | {t('youSave')}: {formatAmount(calcs.savingsLocal)} {currency}
                  </Text>
              </View>
         </GlassCard>
 
         <GlassCard style={styles.lockCard}>
             <View style={styles.lockHeader}>
-                <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 0 }]}>Rate Lock</Text>
+                <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 0 }]}>{t('rateLock')}</Text>
                 <View style={styles.timerBadge}>
                     <MaterialCommunityIcons name="timer-outline" size={20} color={theme.colors.onPrimary} />
                     <Text style={{color: theme.colors.onPrimary, marginLeft: 5, fontWeight: 'bold'}}>{timeLeft}s</Text>
                 </View>
             </View>
             <Text style={{color: theme.colors.placeholder, marginBottom: 15}}>
-                {isPremium ? 'Premium Lock (60s)' : 'Standard Lock (15s)'} active. 
-                Guaranteed rate for this transaction.
+                {isPremium ? t('premiumLock') : t('standardLock')} {t('guaranteed')}
             </Text>
             <View style={styles.lockActions}>
                 <Button 
@@ -224,7 +231,7 @@ export default function ExchangeScreen({ navigation }) {
                     icon={isLocked ? "lock" : "lock-open-outline"}
                     style={{flex: 1, marginRight: 10}}
                 >
-                    {isLocked ? "Locked" : "Lock Rate"}
+                    {isLocked ? t('locked') : t('lockRate')}
                 </Button>
                 <Button 
                     mode="contained" 
@@ -232,7 +239,7 @@ export default function ExchangeScreen({ navigation }) {
                     onPress={() => setIsPremium(!isPremium)}
                     style={{flex: 1}}
                 >
-                    {isPremium ? "Standard" : "Go Premium"}
+                    {isPremium ? t('standard') : t('goPremium')}
                 </Button>
             </View>
             <ProgressBar 
@@ -243,7 +250,7 @@ export default function ExchangeScreen({ navigation }) {
         </GlassCard>
 
         <GlassCard style={styles.actionCard}>
-            <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 15 }]}>Get RENMINBI</Text>
+            <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 15 }]}>{t('getRenminbi')}</Text>
             <Button 
                 mode="contained" 
                 onPress={handleProceed}
@@ -251,7 +258,7 @@ export default function ExchangeScreen({ navigation }) {
                 contentStyle={styles.actionBtnContent}
                 labelStyle={styles.actionBtnLabel}
             >
-                Proceed
+                {t('proceed')}
             </Button>
         </GlassCard>
       </ScrollView>

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
-import { Text, TextInput, Button, useTheme, List } from 'react-native-paper';
+import { Text, TextInput, Button, useTheme } from 'react-native-paper';
 import { generateProforma } from '../services/api';
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ProformaScreen({ route, navigation }) {
   const theme = useTheme();
+  const { t } = useLanguage();
   const { width } = useWindowDimensions();
   const isDesktop = width > 900;
   
@@ -29,7 +31,6 @@ export default function ProformaScreen({ route, navigation }) {
   };
 
   const navigateToService = (serviceName) => {
-      // navigation.navigate('IAmIn', { selectedService: serviceName });
       alert(`Service '${serviceName}' is coming soon!`);
   }
 
@@ -54,7 +55,7 @@ export default function ProformaScreen({ route, navigation }) {
                         </View>
                     ) : (
                          <Text style={{fontStyle: 'italic', marginBottom: 15, color: theme.colors.error}}>
-                             No supplier selected. Please select one from the Suppliers page.
+                             Please select a supplier from the Opportunities or Suppliers section.
                          </Text>
                     )}
                     

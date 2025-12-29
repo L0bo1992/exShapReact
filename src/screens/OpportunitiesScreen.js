@@ -4,9 +4,11 @@ import { Text, Button, useTheme, ActivityIndicator } from 'react-native-paper';
 import { getOpportunities } from '../services/api';
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function OpportunitiesScreen({ navigation }) {
   const theme = useTheme();
+  const { t } = useLanguage();
   const { width } = useWindowDimensions();
   const isDesktop = width > 768;
   const [opportunities, setOpportunities] = useState([]);
@@ -51,7 +53,7 @@ export default function OpportunitiesScreen({ navigation }) {
     <ScreenWrapper>
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={[styles.pageTitle, {color: theme.colors.primary}]}>Market Opportunities</Text>
+                <Text style={[styles.pageTitle, {color: theme.colors.primary}]}>{t('opportunities')}</Text>
                 <Text style={[styles.pageSubtitle, {color: theme.colors.placeholder}]}>
                     Curated high-value insights and supply chain gaps ready for disruption.
                 </Text>

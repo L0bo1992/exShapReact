@@ -5,6 +5,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLanguage } from '../context/LanguageContext';
 
 const SUPPORTED_COUNTRIES = [
   { code: 'NGN', name: 'Nigeria' },
@@ -22,6 +23,7 @@ const SUPPORTED_COUNTRIES = [
 
 export default function AccountScreen({ route }) {
   const theme = useTheme();
+  const { t } = useLanguage();
   const [section, setSection] = useState('transfer'); 
   
   const [shapAmount, setShapAmount] = useState(route.params?.amount || '0');
@@ -45,9 +47,13 @@ export default function AccountScreen({ route }) {
     }
   }, [route.params]);
 
+  const formatAmount = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
   const handleTransferSubmit = () => {
     if (!paymentMethod || !accountNumber) {
-      alert("Please fill in all fields.");
+      alert(t('enterValid'));
       return;
     }
     setShowTransferSuccess(true);
@@ -58,15 +64,15 @@ export default function AccountScreen({ route }) {
     const balance = parseFloat(rmbBalance);
 
     if (!sendToAccount || isNaN(toSend) || toSend <= 0) {
-      alert("Please enter a valid recipient account and amount.");
+      alert(t('enterValid'));
       return;
     }
     if (toSend > balance) {
-      alert("Insufficient balance.");
+      alert(t('insufficient'));
       return;
     }
 
-    alert(`Transfer of RMB ${toSend.toFixed(2)} processed successfully!`);
+    alert(`Transfer of RMB ${formatAmount(toSend.toFixed(2))} ${t('processedSuccess')}`);
     setRmbBalance((balance - toSend).toFixed(2));
     setRmbToSend('');
     setSendToAccount('');
@@ -81,19 +87,19 @@ export default function AccountScreen({ route }) {
           onValueChange={setSection}
           style={styles.toggle}
           buttons={[
-            { value: 'transfer', label: 'Transfer', icon: 'bank-transfer' },
-            { value: 'my_account', label: 'My Account', icon: 'account-card-outline' },
+            { value: 'transfer', label: t('transfer'), icon: 'bank-transfer' },
+            { value: 'my_account', label: t('myAccount'), icon: 'account-card-outline' },
           ]}
         />
 
         {section === 'transfer' ? (
           <View>
             <GlassCard style={styles.card}>
-              <Text style={styles.cardTitle}>Transfer to Account</Text>
+              <Text style={styles.cardTitle}>{t('transfer')}</Text>
               
               <TextInput
-                label="Amount"
-                value={shapAmount}
+                label={t('amountIn')}
+                value={formatAmount(shapAmount)}
                 editable={false}
                 mode="outlined"
                 style={styles.input}
@@ -102,7 +108,7 @@ export default function AccountScreen({ route }) {
               />
 
               <List.Accordion
-                title={SUPPORTED_COUNTRIES.find(c => c.code === selectedCountry)?.name || "Select Country"}
+                title={SUPPORTED_COUNTRIES.find(c => c.code === selectedCountry)?.name || t('selectCountry')}
                 left={props => <List.Icon {...props} icon="earth" color={theme.colors.primary} />}
                 expanded={showCountryMenu}
                 onPress={() => setShowCountryMenu(!showCountryMenu)}
@@ -120,14 +126,14 @@ export default function AccountScreen({ route }) {
               </List.Accordion>
 
               <List.Accordion
-                title={paymentMethod || "Select Payment Method"}
+                title={paymentMethod || t('selectPayment')}
                 left={props => <List.Icon {...props} icon="credit-card-outline" color={theme.colors.primary} />}
                 expanded={showMethodMenu}
                 onPress={() => setShowMethodMenu(!showMethodMenu)}
                 style={styles.accordion}
                 titleStyle={{ color: theme.colors.onSurface }}
               >
-                {['Bank Transfer', 'Mobile Money', 'Debit Card'].map((method) => (
+                {[t('bankTransfer'), t('mobileMoney'), t('debitCard')].map((method) => (
                   <List.Item
                     key={method}
                     title={method}
@@ -138,7 +144,7 @@ export default function AccountScreen({ route }) {
               </List.Accordion>
 
               <TextInput
-                label="Account Number"
+                label={t('accountNumber')}
                 value={accountNumber}
                 onChangeText={setAccountNumber}
                 mode="outlined"
@@ -155,17 +161,17 @@ export default function AccountScreen({ route }) {
                 buttonColor={theme.colors.primary}
                 textColor={theme.colors.onPrimary}
               >
-                OK
+                {t('ok')}
               </Button>
 
               {showTransferSuccess && (
                 <View style={styles.successBox}>
                   <MaterialCommunityIcons name="check-circle" size={48} color={theme.colors.success} />
                   <Text style={[styles.successText, { color: theme.colors.success }]}>
-                    Success! Your payment is being processed. 
+                    {t('success')}
                   </Text>
                   <Text style={{ color: theme.colors.onSurface, textAlign: 'center', marginTop: 10 }}>
-                    Please check "My Account" to view your Renminbi card balance.
+                    {t('checkAccount')}
                   </Text>
                 </View>
               )}
@@ -187,7 +193,7 @@ export default function AccountScreen({ route }) {
 
                 <View style={styles.balanceContainer}>
                   <Text style={styles.balanceLabel}>BALANCE</Text>
-                  <Text style={styles.balanceValue}>¥ {rmbBalance}</Text>
+                  <Text style={styles.balanceValue}>¥ {formatAmount(rmbBalance)}</Text>
                 </View>
 
                 <Text style={styles.cardNumber}>4242  8888  1234  5678</Text>
@@ -210,10 +216,10 @@ export default function AccountScreen({ route }) {
             </View>
 
             <GlassCard style={[styles.card, { marginTop: 20 }]}>
-              <Text style={styles.cardTitle}>Send RENMINBI</Text>
+              <Text style={styles.cardTitle}>{t('sendRenminbi')}</Text>
               
               <TextInput
-                label="Amount in RMB"
+                label={t('amountRmb')}
                 value={rmbToSend}
                 onChangeText={setRmbToSend}
                 mode="outlined"
@@ -224,7 +230,7 @@ export default function AccountScreen({ route }) {
               />
 
               <TextInput
-                label="Send to Account Number"
+                label={t('sendToAccount')}
                 value={sendToAccount}
                 onChangeText={setSendToAccount}
                 mode="outlined"
@@ -240,7 +246,7 @@ export default function AccountScreen({ route }) {
                 buttonColor={theme.colors.secondary}
                 disabled={parseFloat(rmbBalance) <= 0}
               >
-                Pay
+                {t('pay')}
               </Button>
             </GlassCard>
           </View>
