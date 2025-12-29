@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, useTheme, Button, TextInput, Divider, Menu } from 'react-native-paper';
+import { Text, useTheme, Button, TextInput, Divider, Menu, ProgressBar } from 'react-native-paper';
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,7 +19,6 @@ const SUPPORTED_CURRENCIES = [
   { code: 'CDF', name: 'Congolese Franc' },
 ];
 
-// Mock Base Rates: 1 Local Currency = X CNY
 const BASE_RATES = {
   'NGN': 0.0048,
   'XAF': 0.0118,
@@ -37,22 +36,19 @@ const BASE_RATES = {
 export default function ExchangeScreen({ navigation }) {
   const theme = useTheme();
   
-  // Currency Selection State
   const [currency, setCurrency] = useState('NGN');
   const [menuVisible, setMenuVisible] = useState(false);
-
-  // Rate Ticker State
   const [exchangeRate, setExchangeRate] = useState(BASE_RATES['NGN']);
   const [trend, setTrend] = useState('up'); 
-
-  // Calculator State
   const [localAmount, setLocalAmount] = useState('');
 
-  // Fees (ShapShap total = 0.6%)
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+
   const ourFeePercent = 0.5;
   const networkFeePercent = 0.1;
 
-  // Mock Live Rate Ticker
   useEffect(() => {
     const base = BASE_RATES[currency];
     setExchangeRate(base);
@@ -69,40 +65,37 @@ export default function ExchangeScreen({ navigation }) {
     return () => clearInterval(interval);
   }, [currency]);
 
-  const calculateSavings = () => {
+  useEffect(() => {
+    if (timeLeft > 0 && !isLocked) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0 && !isLocked) {
+        setTimeLeft(isPremium ? 60 : 15);
+    }
+  }, [timeLeft, isPremium, isLocked]);
+
+  const calcs = (() => {
     const amount = parseFloat(localAmount) || 0;
-    
-    // User Example Model (Updated to 1.26% Bank Fees):
-    // Input: 1,000,000
-    // Bank Total: 1,012,600 (1.26% Fee)
-    // ShapShap Cost: 1,006,000 (0.6% Fee)
-    // Savings: 6,600
-    
-    // Bank Total Cost = Amount * 1.0126
-    const bankTotal = amount * 1.0126;
-    
-    // Black Market: 0.5% more expensive than Bank
-    const blackMarketTotal = bankTotal * 1.005;
-    
-    // ShapShap Fees: 0.6%
-    const shapShapFeesTotal = (amount * (ourFeePercent + networkFeePercent)) / 100;
-    const totalPayEst = amount + shapShapFeesTotal;
-    
-    // You Save: Bank Total Cost - ShapShap Total Pay
-    const savingsLocal = bankTotal - totalPayEst;
+    const shapShapCNY = amount * exchangeRate;
+    const bankTotalLocal = amount * 1.0126;
+    const blackMarketTotalLocal = bankTotalLocal * 1.005;
+    const fee = amount * (ourFeePercent / 100);
+    const netFee = amount * (networkFeePercent / 100);
+    const totalPayLocal = amount + fee + netFee;
+    const savingsLocal = bankTotalLocal - totalPayLocal;
 
     return {
-      shapShap: (amount * exchangeRate).toFixed(2),
-      bankTotal: bankTotal.toFixed(2),
-      blackMarketTotal: blackMarketTotal.toFixed(2),
-      savings: savingsLocal.toFixed(2)
+      shapShapCNY: shapShapCNY.toFixed(2),
+      bankTotalLocal: bankTotalLocal.toFixed(2),
+      blackMarketTotalLocal: blackMarketTotalLocal.toFixed(2),
+      savingsLocal: savingsLocal.toFixed(2),
+      fee: fee.toFixed(2),
+      netFee: netFee.toFixed(2),
+      totalPayLocal: totalPayLocal.toFixed(2)
     };
-  };
-
-  const calculations = calculateSavings();
-  const fee = (parseFloat(localAmount) || 0) * (ourFeePercent / 100);
-  const netFee = (parseFloat(localAmount) || 0) * (networkFeePercent / 100);
-  const totalPay = (parseFloat(localAmount) || 0) + fee + netFee;
+  })();
 
   const handleProceed = () => {
     if (!localAmount || parseFloat(localAmount) <= 0) {
@@ -110,9 +103,9 @@ export default function ExchangeScreen({ navigation }) {
       return;
     }
     navigation.navigate('Account', { 
-      amount: localAmount, 
+      amount: calcs.totalPayLocal, 
       currency: currency,
-      rmbAmount: calculations.shapShap 
+      rmbAmount: calcs.shapShapCNY 
     });
   };
 
@@ -125,11 +118,9 @@ export default function ExchangeScreen({ navigation }) {
   return (
     <ScreenWrapper>
       <ScrollView contentContainerStyle={styles.container}>        
-        {/* Header / Live Ticker */}
         <View style={styles.header}>
           <Text style={styles.headerSubtitle}>
-              ShapShap is designed to reduce the anxiety of cross-border trade. {'\n'}
-              <Text style={{fontWeight: 'bold', color: theme.colors.secondary}}>Fast and Reliable!</Text>
+              ShapShap is designed to reduce the anxiety of cross-border trade. {'\n'}              <Text style={{fontWeight: 'bold', color: theme.colors.secondary}}>Fast and Reliable!</Text>
           </Text>
           
           <View style={styles.tickerContainer}>
@@ -147,7 +138,7 @@ export default function ExchangeScreen({ navigation }) {
                {SUPPORTED_CURRENCIES.map((curr) => (
                  <Menu.Item 
                     key={curr.code} 
-                    onPress={() => { setCurrency(curr.code); setMenuVisible(false); }} 
+                    onPress={() => { setCurrency(curr.code); setMenuVisible(false); }}
                     title={`${curr.code} - ${curr.name}`}
                     titleStyle={{ color: theme.colors.onSurface }}
                  />
@@ -155,11 +146,9 @@ export default function ExchangeScreen({ navigation }) {
              </Menu>
 
              <Text style={[styles.tickerLabel, { color: theme.colors.onSurface }]}> ≈ </Text>
-             
              <Text style={[styles.tickerValue, { color: trend === 'up' ? theme.colors.success : theme.colors.error }]}>
                {formatRate(exchangeRate)} CNY 
              </Text>
-             
              <MaterialCommunityIcons 
                 name={trend === 'up' ? 'trending-up' : 'trending-down'}
                 size={24} 
@@ -168,10 +157,8 @@ export default function ExchangeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Savings Calculator */}
         <GlassCard style={styles.calculatorCard}>
             <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Live AI Rate Calculator</Text>
-            
             <TextInput
                 label={`Amount in ${currency}`}
                 value={localAmount}
@@ -183,50 +170,80 @@ export default function ExchangeScreen({ navigation }) {
                 textColor={theme.colors.onSurface}
                 theme={{ colors: { background: theme.colors.surface } }}
             />
-
             <View style={styles.comparisonContainer}>
                 <View style={styles.comparisonRow}>
                     <Text style={{color: theme.colors.placeholder}}>Bank Rate (Official)</Text>
-                    <Text style={{color: theme.colors.onSurface}}>{calculations.bankTotal} {currency}</Text>
+                    <Text style={{color: theme.colors.onSurface}}>{calcs.bankTotalLocal} {currency}</Text>
                 </View>
                 <View style={styles.comparisonRow}>
                     <Text style={{color: theme.colors.placeholder}}>Black Market Rate</Text>
-                    <Text style={{color: theme.colors.onSurface}}>{calculations.blackMarketTotal} {currency}</Text>
+                    <Text style={{color: theme.colors.onSurface}}>{calcs.blackMarketTotalLocal} {currency}</Text>
                 </View>
             </View>
         </GlassCard>
 
-        {/* Fee Breakdown */}
         <GlassCard style={styles.feeCard}>
              <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>ShapShap Fees</Text>
              <View style={styles.feeRow}>
                  <Text style={{color: theme.colors.placeholder}}>Our Fee ({ourFeePercent}%)</Text>
-                 <Text style={{color: theme.colors.onSurface}}>{fee.toFixed(2)} {currency}</Text>
+                 <Text style={{color: theme.colors.onSurface}}>{calcs.fee} {currency}</Text>
              </View>
              <View style={styles.feeRow}>
                  <Text style={{color: theme.colors.placeholder}}>Network Fee ({networkFeePercent}%)</Text>
-                 <Text style={{color: theme.colors.onSurface}}>{netFee.toFixed(2)} {currency}</Text>
+                 <Text style={{color: theme.colors.onSurface}}>{calcs.netFee} {currency}</Text>
              </View>
-             
              <Divider style={{ marginVertical: 10, backgroundColor: theme.colors.cardBorder }} />
-             
              <View style={styles.feeRowTotal}>
                  <Text style={{color: theme.colors.onSurface, fontSize: 18}}>Total Pay</Text>
-                 <Text style={{color: theme.colors.primary, fontSize: 20, fontWeight: 'bold'}}>{totalPay.toFixed(2)} {currency}</Text>
+                 <Text style={{color: theme.colors.primary, fontSize: 20, fontWeight: 'bold'}}>{calcs.totalPayLocal} {currency}</Text>
              </View>
-
              <View style={[styles.savingsRow, {marginTop: 15, backgroundColor: 'rgba(0, 230, 118, 0.1)', padding: 10, borderRadius: 8}]}>
                  <MaterialCommunityIcons name="piggy-bank-outline" size={24} color={theme.colors.secondary} />
                  <Text style={{color: theme.colors.secondary, marginLeft: 10, fontWeight: 'bold'}}>
-                     You Save: {calculations.savings} {currency}
+                    You get: {calcs.shapShapCNY} CNY | You Save: {calcs.savingsLocal} {currency}
                  </Text>
              </View>
         </GlassCard>
 
-        {/* Get RENMINBI */}
+        <GlassCard style={styles.lockCard}>
+            <View style={styles.lockHeader}>
+                <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 0 }]}>Rate Lock</Text>
+                <View style={styles.timerBadge}>
+                    <MaterialCommunityIcons name="timer-outline" size={20} color={theme.colors.onPrimary} />
+                    <Text style={{color: theme.colors.onPrimary, marginLeft: 5, fontWeight: 'bold'}}>{timeLeft}s</Text>
+                </View>
+            </View>
+            <Text style={{color: theme.colors.placeholder, marginBottom: 15}}>
+                {isPremium ? 'Premium Lock (60s)' : 'Standard Lock (15s)'} active. 
+                Guaranteed rate for this transaction.
+            </Text>
+            <View style={styles.lockActions}>
+                <Button 
+                    mode={isLocked ? "contained" : "outlined"} 
+                    onPress={() => setIsLocked(!isLocked)}
+                    icon={isLocked ? "lock" : "lock-open-outline"}
+                    style={{flex: 1, marginRight: 10}}
+                >
+                    {isLocked ? "Locked" : "Lock Rate"}
+                </Button>
+                <Button 
+                    mode="contained" 
+                    buttonColor={theme.colors.secondary}
+                    onPress={() => setIsPremium(!isPremium)}
+                    style={{flex: 1}}
+                >
+                    {isPremium ? "Standard" : "Go Premium"}
+                </Button>
+            </View>
+            <ProgressBar 
+                progress={timeLeft / (isPremium ? 60 : 15)} 
+                color={timeLeft < 5 ? theme.colors.error : theme.colors.primary} 
+                style={{marginTop: 15, height: 6, borderRadius: 3}}
+            />
+        </GlassCard>
+
         <GlassCard style={styles.actionCard}>
             <Text style={[styles.cardTitle, { color: theme.colors.onSurface, marginBottom: 15 }]}>Get RENMINBI</Text>
-            
             <Button 
                 mode="contained" 
                 onPress={handleProceed}
@@ -234,10 +251,9 @@ export default function ExchangeScreen({ navigation }) {
                 contentStyle={styles.actionBtnContent}
                 labelStyle={styles.actionBtnLabel}
             >
-                Proceed to Get RENMINBI
+                Proceed
             </Button>
         </GlassCard>
-
       </ScrollView>
     </ScreenWrapper>
   );
@@ -254,12 +270,6 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 20,
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    textAlign: 'center'
   },
   headerSubtitle: {
     fontSize: 16, 
@@ -333,6 +343,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 5,
+  },
+  lockCard: {
+    padding: 20,
+    marginBottom: 20,
+  },
+  lockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  timerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00E5FF', // Primary
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  lockActions: {
+    flexDirection: 'row',
   },
   actionCard: {
     padding: 20,

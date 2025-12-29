@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { Text, useTheme, TextInput, Button, SegmentedButtons, List, Divider, HelperText } from 'react-native-paper';
+import { Text, useTheme, TextInput, Button, SegmentedButtons, List, Divider } from 'react-native-paper';
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width } = Dimensions.get('window');
 
 const SUPPORTED_COUNTRIES = [
   { code: 'NGN', name: 'Nigeria' },
@@ -22,12 +20,11 @@ const SUPPORTED_COUNTRIES = [
   { code: 'CDF', name: 'DR Congo' },
 ];
 
-export default function AccountScreen({ route, navigation }) {
+export default function AccountScreen({ route }) {
   const theme = useTheme();
-  const [section, setSection] = useState('transfer'); // 'transfer' or 'my_account'
+  const [section, setSection] = useState('transfer'); 
   
-  // Transfer to Account State
-  const [amount, setAmount] = useState(route.params?.amount || '0');
+  const [shapAmount, setShapAmount] = useState(route.params?.amount || '0');
   const [selectedCountry, setSelectedCountry] = useState(route.params?.currency || 'NGN');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -35,14 +32,14 @@ export default function AccountScreen({ route, navigation }) {
   const [showCountryMenu, setShowCountryMenu] = useState(false);
   const [showMethodMenu, setShowMethodMenu] = useState(false);
 
-  // My Account State
   const [cvvVisible, setCvvVisible] = useState(false);
   const [sendToAccount, setSendToAccount] = useState('');
+  const [rmbToSend, setRmbToSend] = useState('');
   const [rmbBalance, setRmbBalance] = useState(route.params?.rmbAmount || '0.00');
 
   useEffect(() => {
     if (route.params?.amount) {
-      setAmount(route.params.amount);
+      setShapAmount(route.params.amount);
       setSelectedCountry(route.params.currency);
       setRmbBalance(route.params.rmbAmount || '0.00');
     }
@@ -57,12 +54,22 @@ export default function AccountScreen({ route, navigation }) {
   };
 
   const handlePayRmb = () => {
-    if (!sendToAccount) {
-      alert("Please enter recipient account number.");
+    const toSend = parseFloat(rmbToSend);
+    const balance = parseFloat(rmbBalance);
+
+    if (!sendToAccount || isNaN(toSend) || toSend <= 0) {
+      alert("Please enter a valid recipient account and amount.");
       return;
     }
-    alert(`Transfer of RMB ${rmbBalance} processed successfully!`);
-    setRmbBalance('0.00');
+    if (toSend > balance) {
+      alert("Insufficient balance.");
+      return;
+    }
+
+    alert(`Transfer of RMB ${toSend.toFixed(2)} processed successfully!`);
+    setRmbBalance((balance - toSend).toFixed(2));
+    setRmbToSend('');
+    setSendToAccount('');
   };
 
   return (
@@ -86,7 +93,7 @@ export default function AccountScreen({ route, navigation }) {
               
               <TextInput
                 label="Amount"
-                value={amount}
+                value={shapAmount}
                 editable={false}
                 mode="outlined"
                 style={styles.input}
@@ -204,6 +211,18 @@ export default function AccountScreen({ route, navigation }) {
 
             <GlassCard style={[styles.card, { marginTop: 20 }]}>
               <Text style={styles.cardTitle}>Send RENMINBI</Text>
+              
+              <TextInput
+                label="Amount in RMB"
+                value={rmbToSend}
+                onChangeText={setRmbToSend}
+                mode="outlined"
+                keyboardType="numeric"
+                style={styles.input}
+                activeOutlineColor={theme.colors.primary}
+                textColor={theme.colors.onSurface}
+              />
+
               <TextInput
                 label="Send to Account Number"
                 value={sendToAccount}
@@ -278,7 +297,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: '100%',
-    aspectRatio: 1.586, // Credit card ratio
+    aspectRatio: 1.586, 
   },
   virtualCard: {
     flex: 1,
