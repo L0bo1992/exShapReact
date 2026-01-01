@@ -106,7 +106,7 @@ export default function ExchangeScreen({ navigation }) {
 
   const handleProceed = () => {
     if (!localAmount || parseFloat(localAmount) <= 0) {
-      alert(t('enterValid'));
+      alert(t('enterAmountToConvert'));
       return;
     }
     navigation.navigate('Account', { 
