@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, useWindowDimensions, RefreshControl, Platform } from 'react-native';
 import { Text, TextInput, Button, useTheme } from 'react-native-paper';
 import { generateProforma } from '../services/api';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -17,6 +17,18 @@ export default function ProformaScreen({ route, navigation }) {
   const [quantity, setQuantity] = useState('100');
   const [loading, setLoading] = useState(false);
   const [proformaData, setProformaData] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (Platform.OS === 'web') {
+      window.location.reload();
+    } else {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 2000);
+    }
+  }, []);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -36,7 +48,12 @@ export default function ProformaScreen({ route, navigation }) {
 
   return (
     <ScreenWrapper>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={[styles.contentRow, isDesktop ? {flexDirection: 'row'} : {flexDirection: 'column'}]}>
             
             {/* Left Column: Form */}

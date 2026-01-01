@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, useWindowDimensions, Image } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, FlatList, useWindowDimensions, Image, RefreshControl, Platform } from 'react-native';
 import { Text, Button, useTheme, ActivityIndicator } from 'react-native-paper';
 import { getOpportunities } from '../services/api';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -13,6 +13,18 @@ export default function OpportunitiesScreen({ navigation }) {
   const isDesktop = width > 768;
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (Platform.OS === 'web') {
+      window.location.reload();
+    } else {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 2000);
+    }
+  }, []);
 
   useEffect(() => {
       getOpportunities().then(data => {
@@ -67,6 +79,9 @@ export default function OpportunitiesScreen({ navigation }) {
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     contentContainerStyle={{paddingBottom: 140}}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
                 />
             )}
         </View>

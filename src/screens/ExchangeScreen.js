@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Platform, RefreshControl } from 'react-native';
 import { Text, useTheme, Button, TextInput, Divider, Menu, ProgressBar } from 'react-native-paper';
 import ScreenWrapper from '../components/ScreenWrapper';
 import GlassCard from '../components/GlassCard';
@@ -43,10 +43,24 @@ export default function ExchangeScreen({ navigation }) {
   const [exchangeRate, setExchangeRate] = useState(BASE_RATES['NGN']);
   const [trend, setTrend] = useState('up'); 
   const [localAmount, setLocalAmount] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState(15);
   const [isPremium, setIsPremium] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    if (Platform.OS === 'web') {
+      window.location.reload();
+    } else {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 2000);
+    }
+  }, []);
+
   const [isLocked, setIsLocked] = useState(false);
+
 
   const ourFeePercent = isPremium ? 0.575 : 0.5;
   const networkFeePercent = 0.1;
@@ -124,7 +138,12 @@ export default function ExchangeScreen({ navigation }) {
 
   return (
     <ScreenWrapper>
-      <ScrollView contentContainerStyle={styles.container}>        
+      <ScrollView 
+        contentContainerStyle={styles.container}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >        
         <View style={styles.header}>
           <Text style={styles.headerSubtitle}>
               {t('anxietyReduce')} {'\n'}

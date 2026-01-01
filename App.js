@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { View, TouchableOpacity, Image, Platform } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -48,10 +48,8 @@ function LanguageTabButton(props) {
           borderWidth: 1,
           alignItems: 'center',
           gap: 12,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 5,
+          // Using boxShadow for web compatibility
+          boxShadow: '0px 4px 5px rgba(0, 0, 0, 0.3)',
           elevation: 10,
           zIndex: 1000,
           width: 54, 
@@ -151,6 +149,19 @@ function AppNavigator() {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.textContent = `
+        html, body, #root {
+          overscroll-behavior-y: auto !important;
+          -webkit-overflow-scrolling: touch;
+        }
+      `;
+      document.head.append(style);
+    }
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <SafeAreaProvider>
